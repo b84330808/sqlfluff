@@ -41,7 +41,10 @@ def _load_raw_file_as_dict(filepath: str) -> ConfigMappingType:
     if filename == PYPROJECT_FILENAME:
         return load_toml_file_config(filepath)
     # If it's not a pyproject file, assume that it's an ini file.
-    with open(filepath, mode="r") as file:
+    # NOTE: Read it as UTF-8 rather than the locale encoding, so that
+    # non-ASCII text in a .sqlfluff, setup.cfg or tox.ini file is read
+    # the same way on every platform.
+    with open(filepath, mode="r", encoding="utf-8") as file:
         return load_ini_string(file.read())
 
 

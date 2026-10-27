@@ -91,6 +91,16 @@ def test__linter__path_from_paths__sqlfluffignore_current_directory():
         os.chdir(oldcwd)
 
 
+def test__linter__path_from_paths__sqlfluffignore_utf8(tmp_path):
+    """Test that a .sqlfluffignore file is read as UTF-8 on every platform."""
+    for folder in ("データ", "kept"):
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / "query.sql").write_text("SELECT 1\n")
+    (tmp_path / ".sqlfluffignore").write_text("データ/\n", encoding="utf-8")
+    paths = paths_from_path(str(tmp_path), working_path=str(tmp_path))
+    assert [os.path.basename(os.path.dirname(p)) for p in paths] == ["kept"]
+
+
 def test__linter__path_from_paths__dot():
     """Test extracting paths from a dot."""
     # Use set theory to check that we get AT LEAST these files

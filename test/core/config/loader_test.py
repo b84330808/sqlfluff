@@ -239,6 +239,29 @@ def test__config__load_toml():
     }
 
 
+@pytest.mark.parametrize("filename", [".sqlfluff", "setup.cfg", "tox.ini"])
+def test__config__load_ini_utf8(tmp_path, filename):
+    """Test that ini config files are read as UTF-8 on every platform.
+
+    The text includes characters which legacy Windows code pages (such as
+    cp1252 or cp932) either can't decode or decode as something else.
+    """
+    (tmp_path / filename).write_text(
+        "[metadata]\n"
+        "description = “Quoted” — 日本語\n"
+        "[sqlfluff]\n"
+        "dialect = ansi\n"
+        "[sqlfluff:templater:jinja:context]\n"
+        "greeting = “Grüße” — こんにちは\n",
+        encoding="utf-8",
+    )
+    cfg = load_config_file(str(tmp_path), filename)
+    assert cfg == {
+        "core": {"dialect": "ansi"},
+        "templater": {"jinja": {"context": {"greeting": "“Grüße” — こんにちは"}}},
+    }
+
+
 def test__config__load_placeholder_cfg():
     """Test loading a sqlfluff configuration file for placeholder templater."""
     cfg = load_config_file(
